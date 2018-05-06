@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
+<style type="text/css">
+body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;}
+#l-map{height:100%;width:78%;float:left;border-right:2px solid #bcbcbc;}
+#r-result{height:100%;width:20%;float:left;}
+</style>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=fHvYQznAjCINZAiFWf9e26K6rP7GVu9d"></script>
+<script src="http://libs.baidu.com/jquery/1.9.0/jquery.js"></script>
+<title>百度地图</title>
+</head>
+<body>
+<div id="allmap"></div>
+</body>
+</html>
+<script type="text/javascript">
+var map = new BMap.Map("allmap");  
+map.centerAndZoom(new BMap.Point(116.404, 39.915), 15);
+map.enableScrollWheelZoom();                            //启用滚轮放大缩小
+map.addControl(new BMap.NavigationControl());                                 
+map.addControl(new BMap.OverviewMapControl());
+map.addControl(new BMap.ScaleControl());                
+map.enableScrollWheelZoom();                           
+map.addControl(new BMap.MapTypeControl());
+
+var ta = new Array();
+
+var top_left_navigation = new BMap.NavigationControl();  //左上角，添加默认缩放平移控件
+
+function testarray(a)
+{
+	alert('a:' + arguments.length);
+	//alert('ar0:' + ar[0] + ' ar1:' + ar[1]);
+}
+
+var arrPois = [];
+//输入GPS坐标 内部转换为百度地图坐标再显示
+function putpoint(lng, lat)
+{
+	var ggPoint = new BMap.Point(lng, lat);
+	translateCallback = function (data){
+      if(data.status === 0) {
+		arrPois.push(data.points[0]);
+        var centre = arrPois[parseInt(arrPois.length / 2)];
+		map.centerAndZoom(centre, 11);
+		if (arrPois.length > 1)
+		{
+			var pointA = arrPois[arrPois.length - 1];
+			var pointB = arrPois[arrPois.length - 2];
+			addMarker(data.points[0], 'P' + (arrPois.length - 1) + ' ' + map.getDistance(pointB,pointA).toFixed(2));
+		}
+		else
+		{
+			addMarker(new BMap.Point(lng, lat), "Begin");
+		}
+		var polyline = new BMap.Polyline(
+				arrPois.slice(-2),
+				{
+					strokeColor : "#009933",
+					strokeWeight : 4,
+					strokeStyle : "dashed"
+				});
+		map.addOverlay(polyline);
+      }
+    }
+	
+	setTimeout(function(){
+        var convertor = new BMap.Convertor();
+        var pointArr = [];
+        pointArr.push(ggPoint);
+        convertor.translate(pointArr, 1, 5, translateCallback)
+    }, 1000);
+	
+	
+	
+}
+
+function justmarkfun(jd)
+{
+	alert(valueof(jd));
+	alert(typeof jd + ' ' + typeof ta);
+	//alert(jd.toString());
+	//alert(typeof arguments[0] + ' ' + arguments[0].length);
+	var dataroot="json/run.json";
+	var runLine = [];
+	var arrvalue = ta.length;
+	alert(arrvalue);
+	jQuery.getJSON(dataroot, function(data){ 
+		runLine = data;
+		var centre = runLine[parseInt(runLine.length / 2)];
+		map.centerAndZoom(new BMap.Point(centre.lng, centre.lat), 11);
+		var arrPois = [];
+		jQuery.each(runLine, function(i, n) {
+			arrPois.push(new BMap.Point(n.lng, n.lat));
+			if (i > 0)
+			{
+				var pointA = new BMap.Point(runLine[i - 1].lng, runLine[i - 1].lat);
+				var pointB = new BMap.Point(runLine[i].lng, runLine[i].lat);
+				addMarker(new BMap.Point(n.lng, n.lat), map.getDistance(pointB,pointA).toFixed(2));
+			}
+		});
+		
+		//addMarker(new BMap.Point(runLine[0].lng, runLine[0].lat), 'end');
+		//addMarker(new BMap.Point(runLine[runLine.length - 1].lng, runLine[runLine.length - 1].lat), 'begin');
+		//map.getDistance(pointA,pointB)).toFixed(2)
+		var polyline = new BMap.Polyline(
+			arrPois,
+			{
+				strokeColor : "#009933",
+				strokeWeight : 4,
+				strokeStyle : "dashed"
+			});
+		map.addOverlay(polyline);
+		});
+	// 百度地图API功能
+	//var map = new BMap.Map("allmap");
+	//map.centerAndZoom("重庆",12);  //初始化地图,设置城市和地图级别。
+	//var pointA = new BMap.Point(106.486654,29.490295);  // 创建点坐标A--大渡口区
+	//var pointB = new BMap.Point(106.581515,29.615467);  // 创建点坐标B--江北区
+	//alert('jd:' + arguments[0] + ' wd:' + arguments[1]);
+	//alert('从大渡口区到江北区的距离是：'+(map.getDistance(pointA,pointB)).toFixed(2)+' 米。');  //获取两点距离,保留小数点后两位
+	//var polyline = new BMap.Polyline([pointA,pointB], {strokeColor:"blue", strokeWeight:6, strokeOpacity:0.5});  //定义折线
+	//map.addOverlay(polyline);     //添加折线到地图上
+}
+
+function addMarker(point, name) {
+	var marker = new BMap.Marker(point);
+	var label = new BMap.Label(name, { 
+		offset : new BMap.Size(20, -10)
+		});
+	marker.setLabel(label);
+	map.addOverlay(marker);
+}
+
+function clearMarkers() {
+	map.clearOverlays();
+}
+</script>
