@@ -305,7 +305,7 @@ void CTestBaiDuMapDlg::OnBnClickedButtonImport()
 		time += ts;
 		CString strTime(time.Format(_T("%Y-%m-%d %H:%M:%S")));
 		int ran = rand() % 10;
-		double dran = ran / 10.0f;
+		double dran = ran / 100.0f;
 		lng -= dran;
 		lat -= dran;
 		CString strLng(_T("")), strLat(_T(""));

@@ -36,45 +36,31 @@ function testarray(a)
 }
 
 var arrPois = [];
-//输入GPS坐标 内部转换为百度地图坐标再显示
+//输入百度地图坐标显示描点
 function putpoint(lng, lat)
 {
 	var ggPoint = new BMap.Point(lng, lat);
-	translateCallback = function (data){
-      if(data.status === 0) {
-		arrPois.push(data.points[0]);
-        var centre = arrPois[parseInt(arrPois.length / 2)];
-		map.centerAndZoom(centre, 11);
-		if (arrPois.length > 1)
-		{
-			var pointA = arrPois[arrPois.length - 1];
-			var pointB = arrPois[arrPois.length - 2];
-			addMarker(data.points[0], 'P' + (arrPois.length - 1) + ' ' + map.getDistance(pointB,pointA).toFixed(2));
-		}
-		else
-		{
-			addMarker(new BMap.Point(lng, lat), "Begin");
-		}
-		var polyline = new BMap.Polyline(
-				arrPois.slice(-2),
-				{
-					strokeColor : "#009933",
-					strokeWeight : 4,
-					strokeStyle : "dashed"
-				});
-		map.addOverlay(polyline);
-      }
-    }
-	
-	setTimeout(function(){
-        var convertor = new BMap.Convertor();
-        var pointArr = [];
-        pointArr.push(ggPoint);
-        convertor.translate(pointArr, 1, 5, translateCallback)
-    }, 1000);
-	
-	
-	
+	arrPois.push(ggPoint);
+    var centre = arrPois[parseInt(arrPois.length / 2)];
+	map.centerAndZoom(centre, 11);
+	if (arrPois.length > 1)
+	{
+		var pointA = arrPois[arrPois.length - 1];
+		var pointB = arrPois[arrPois.length - 2];
+		addMarker(arrPois[arrPois.length - 1], 'P' + (arrPois.length - 1) + ' ' + map.getDistance(pointB,pointA).toFixed(2));
+	}
+	else
+	{
+		addMarker(arrPois[0], "Begin");
+	}
+	var polyline = new BMap.Polyline(
+			arrPois.slice(-2),
+			{
+				strokeColor : "#009933",
+				strokeWeight : 4,
+				strokeStyle : "dashed"
+			});
+	map.addOverlay(polyline);	
 }
 
 function justmarkfun(jd)
